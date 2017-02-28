@@ -6,8 +6,6 @@
 //  Copyright © 2017年 xiaowei. All rights reserved.
 //
 
-typedef void(^blk)();
-
 #import "GCDViewController.h"
 
 @interface GCDViewController ()
@@ -27,7 +25,96 @@ typedef void(^blk)();
 //    [self testSyncAndAsync];
     
     //同步和异步混合
-    [self testSyncAndAsyncMix];
+//    [self testSyncAndAsyncMix];
+    
+    //改变队列优先级和执行阶层
+//    [self testSetTargetQueue1];
+    
+    //设置队列执行阶层
+    [self testSetTargetQueue2];
+}
+
+- (void)testSetTargetQueue2
+{
+    dispatch_queue_t serialQueue1 = dispatch_queue_create("com.gcd.setTargetQueue2.serialQueue1", NULL);
+    dispatch_queue_t serialQueue2 = dispatch_queue_create("com.gcd.setTargetQueue2.serialQueue2", NULL);
+    dispatch_queue_t serialQueue3 = dispatch_queue_create("com.gcd.setTargetQueue2.serialQueue3", NULL);
+    dispatch_queue_t serialQueue4 = dispatch_queue_create("com.gcd.setTargetQueue2.serialQueue4", NULL);
+    dispatch_queue_t serialQueue5 = dispatch_queue_create("com.gcd.setTargetQueue2.serialQueue5", NULL);
+    
+//    //设置前
+//    dispatch_async(serialQueue1, ^{
+//        NSLog(@"1");
+//    });
+//    dispatch_async(serialQueue2, ^{
+//        NSLog(@"2");
+//    });
+//    dispatch_async(serialQueue3, ^{
+//        NSLog(@"3");
+//    });
+//    dispatch_async(serialQueue4, ^{
+//        NSLog(@"4");
+//    });
+//    dispatch_async(serialQueue5, ^{
+//        NSLog(@"5");
+//    });
+    
+    //创建目标串行队列
+    dispatch_queue_t targetSerialQueue = dispatch_queue_create("com.gcd.setTargetQueue2.targetSerialQueue", NULL);
+
+    //设置执行阶层
+    dispatch_set_target_queue(serialQueue1, targetSerialQueue);
+    dispatch_set_target_queue(serialQueue2, targetSerialQueue);
+    dispatch_set_target_queue(serialQueue3, targetSerialQueue);
+    dispatch_set_target_queue(serialQueue4, targetSerialQueue);
+    dispatch_set_target_queue(serialQueue5, targetSerialQueue);
+    
+    //设置后
+    dispatch_async(serialQueue1, ^{
+        NSLog(@"1");
+    });
+    dispatch_async(serialQueue2, ^{
+        NSLog(@"2");
+    });
+    dispatch_async(serialQueue3, ^{
+        NSLog(@"3");
+    });
+    dispatch_async(serialQueue4, ^{
+        NSLog(@"4");
+    });
+    dispatch_async(serialQueue5, ^{
+        NSLog(@"5");
+    });
+}
+
+- (void)testSetTargetQueue1
+{
+    //优先级变更的串行队列，初始是默认优先级
+    dispatch_queue_t serialQueue = dispatch_queue_create("com.gcd.setTargetQueue1.serialQueue", NULL);
+
+    //优先级不变的串行队列（参照），初始是默认优先级
+    dispatch_queue_t serialDefaultQueue = dispatch_queue_create("com.gcd.setTargetQueue1.serialDefaultQueue", NULL);
+
+    //变更前
+    dispatch_async(serialQueue, ^{
+        NSLog(@"1");
+    });
+    dispatch_async(serialDefaultQueue, ^{
+        NSLog(@"2");
+    });
+
+    //获取优先级为后台优先级的全局队列
+    dispatch_queue_t globalDefaultQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0);
+    //变更优先级
+    dispatch_set_target_queue(serialQueue, globalDefaultQueue);
+
+    //变更后
+    dispatch_async(serialQueue, ^{
+        NSLog(@"1");
+    });
+    dispatch_async(serialDefaultQueue, ^{
+        NSLog(@"2");
+    });
 }
 
 - (void)testSyncAndAsyncMix
