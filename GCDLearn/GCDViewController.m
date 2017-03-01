@@ -31,7 +31,31 @@
 //    [self testSetTargetQueue1];
     
     //设置队列执行阶层
-    [self testSetTargetQueue2];
+//    [self testSetTargetQueue2];
+    
+    //Dispatch Group
+    [self testDispatchGroup];
+}
+
+- (void)testDispatchGroup
+{
+    //获取一个全局队列
+    dispatch_queue_t globalQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+    
+    //创建一个group
+    dispatch_group_t group = dispatch_group_create();
+    
+    //在group执行操作
+    dispatch_group_async(group, globalQueue, ^{ NSLog(@"1"); });
+    dispatch_group_async(group, globalQueue, ^{ NSLog(@"2"); });
+    dispatch_group_async(group, globalQueue, ^{ NSLog(@"3"); });
+    dispatch_group_async(group, globalQueue, ^{ NSLog(@"4"); });
+    dispatch_group_async(group, globalQueue, ^{ NSLog(@"5"); });
+    
+    //group中的操作全部执行完，通知队列
+    dispatch_group_notify(group, dispatch_get_main_queue(), ^{
+        NSLog(@"Done!");
+    });
 }
 
 - (void)testSetTargetQueue2
