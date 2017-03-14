@@ -34,7 +34,53 @@
 //    [self testSetTargetQueue2];
     
     //Dispatch Group
-    [self testDispatchGroup];
+//    [self testDispatchGroup];
+    
+    //dispatch_apply
+//    [self testDispatchApply];
+    
+    //Dispatch Semaphore
+    [self testDispatchSemaphore];
+}
+
+- (void)testDispatchSemaphore
+{
+    //获取一个全局队列
+    dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+    
+    //可变数组
+    NSMutableArray *mutableArray = [NSMutableArray array];
+    
+    //创建一个计数为1的信号量
+    dispatch_semaphore_t semaphore = dispatch_semaphore_create(5);
+    
+    for (int i = 0; i < 100000; ++i) {
+        dispatch_async(queue, ^{
+            //等待semaphore计数大于等于1，减1而不等待
+            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+            
+            [mutableArray addObject:[NSNumber numberWithInt:i]];
+            
+            //执行完后将semaphore计数加1
+            dispatch_semaphore_signal(semaphore);
+        });
+    }
+}
+
+- (void)testDispatchApply
+{
+    //获取一个全局队列
+//    dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+    
+    //创建一个串行队列
+    dispatch_queue_t queue = dispatch_queue_create("com.gcd.dispatchApply.serialQueue", NULL);
+    
+    //在全局队列queue上执行十次输出操作
+    dispatch_apply(10, queue, ^(size_t index) {
+        NSLog(@"%zu", index);
+    });
+    
+    NSLog(@"done!");
 }
 
 - (void)testDispatchGroup
